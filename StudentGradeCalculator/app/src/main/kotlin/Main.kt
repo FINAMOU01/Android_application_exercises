@@ -1,6 +1,8 @@
 import model.Student
-import service.calculateGrade
-import service.readStudentsFromExcel
+import service.ExcelStudentReader
+import service.GradeCalculatorService
+import service.StudentReader
+import service.GradeCalculator
 
 fun main(args: Array<String>){
     println("==================================================")
@@ -24,7 +26,11 @@ fun main(args: Array<String>){
         return
     }
     
-    val students = readStudentsFromExcel(path)
+    // Create instances of the classes
+    val studentReader: StudentReader = ExcelStudentReader()
+    val gradeCalculator: GradeCalculator = GradeCalculatorService()
+    
+    val students = studentReader.readStudents(path)
      if (students.isEmpty()){
         println("No students found.")
         return
@@ -35,36 +41,8 @@ fun main(args: Array<String>){
      val studentsWithGrades = students.filter { it.grade in 0..100 }
      
      // Use MAP to transform students to their letter grades
-     val gradeResults = studentsWithGrades.map { "${it.name}: ${calculateGrade(it.grade!!)}" }
+     val gradeResults = studentsWithGrades.map { "${it.name}: ${gradeCalculator.calculate(it.grade!!)}" }
      
      // Use FOR EACH to print each result
      gradeResults.forEach { println(it) }
-     
-     // Use FOLD to calculate statistics
-     if (studentsWithGrades.isNotEmpty()) {
-         println("\n--- Grade Statistics ---")
-         
-         // Count total students with grades using fold
-         val totalCount = studentsWithGrades.fold(0) { acc, _ -> acc + 1 }
-         println("Total students with grades: $totalCount")
-         
-         // Calculate average grade using fold
-         val averageGrade = studentsWithGrades.fold(0) { acc, student -> acc + (student.grade ?: 0) }.toDouble() / totalCount
-         println("Average score: %.2f".format(averageGrade))
-         
-         // Count grades by letter using fold
-         val gradeDistribution = studentsWithGrades.fold(mutableMapOf<String, Int>()) { acc, student ->
-             val letter = calculateGrade(student.grade!!)
-             acc[letter] = acc.getOrDefault(letter, 0) + 1
-             acc
-         }
-         println("Grade distribution: $gradeDistribution")
-     }
-     
-     // Report students without valid grades using filter
-     val studentsWithoutGrades = students.filter { it.grade == null || it.grade !in 0..100 }
-     if (studentsWithoutGrades.isNotEmpty()) {
-         println("\nStudents without valid grades:")
-         studentsWithoutGrades.forEach { println("  ${it.name}") }
-     }
 }
