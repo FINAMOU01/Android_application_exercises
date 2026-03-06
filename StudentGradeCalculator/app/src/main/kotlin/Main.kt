@@ -1,6 +1,8 @@
 import model.Student
-import service.calculateGrade
-import service.readStudentsFromExcel
+import service.ExcelStudentReader
+import service.GradeCalculatorService
+import service.StudentReader
+import service.GradeCalculator
 
 fun main(args: Array<String>){
     println("==================================================")
@@ -24,7 +26,11 @@ fun main(args: Array<String>){
         return
     }
     
-    val students = readStudentsFromExcel(path)
+    // Create instances of the classes
+    val studentReader: StudentReader = ExcelStudentReader()
+    val gradeCalculator: GradeCalculator = GradeCalculatorService()
+    
+    val students = studentReader.readStudents(path)
      if (students.isEmpty()){
         println("No students found.")
         return
@@ -35,7 +41,7 @@ fun main(args: Array<String>){
      val studentsWithGrades = students.filter { it.grade in 0..100 }
      
      // Use MAP to transform students to their letter grades
-     val gradeResults = studentsWithGrades.map { "${it.name}: ${calculateGrade(it.grade!!)}" }
+     val gradeResults = studentsWithGrades.map { "${it.name}: ${gradeCalculator.calculate(it.grade!!)}" }
      
      // Use FOR EACH to print each result
      gradeResults.forEach { println(it) }
